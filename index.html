@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Promise</title>
+  </head>
+  <body>
+    <button id="btn">Make a promise!</button>
+    <div id="log"></div>
+    <script src="promise.js"></script>
+    <script src="app.js"></script>
+    <script>
+      
+                if ("Promise" in window) {
+  btn = document.getElementById("btn");
+   btn.addEventListener("click",testPromise);
+}
+else {
+  log = document.getElementById('log');
+  log.innerHTML = "Live example not available as your browser doesn't support the Promise interface.";
+}
+            
+    </script>
+  </body>
+</html>
