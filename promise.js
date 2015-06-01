@@ -1,4 +1,5 @@
 (function(window){
+  "use strict"; 
   if ("Promise" in window) {
     return ;
   }
