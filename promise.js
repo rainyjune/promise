@@ -5,6 +5,7 @@
   if ("Promise" in window) {
     return ;
   }
+  alert("my");
 
   /**
    * Constructor
@@ -17,45 +18,35 @@
       throw new TypeError("Argument 1 of Promise.constructor is not a function");
     }
     
-    var queue = [];
+    var callbacks = { "ok": [], "fail": [] }; 
+    var slice = Array.prototype.slice;
     
-    var state = "pending";
-    var statevalue = null;
+    var status = "pending";
+    var statevalue;
     
     this.length = 1;
-    
-      
-    this.all = function(iterable) {
-    };
-    
-    this.race = function(iterable) {
-      
-    };
-    
-    this.reject = function(reason) {
-      state = "rejected";
-      statevalue = reason;
-      processQueue();
-    };
-    
-    this.resolve = function(value) {
-      state = "fulfilled";
-      statevalue = value;
-      processQueue();
-    };
-    
-    function processQueue() {
-      if (state === "fulfilled") {
-        var succCallback = queue.shift()["success"];
-        succCallback && succCallback(statevalue);
-      } else if (state === "rejected") {
-        var errCallback = queue.shift()["error"];
-        errCallback && errCallback(statevalue);
+
+    function resolveInterval(state, args) {
+      if (status !== "pending") {
+        throw new Error("Promise has already been resolved");
       }
+      status = state;
+      statevalue = slice.call(args, 0);
+      callbacks[state].forEach(function(e){
+        e.apply(e, statevalue);
+      });
     }
     
+    var reject = function() {
+      resolveInterval("fail", arguments);
+    };
+    
+    var resolve = function() {
+      resolveInterval("ok", arguments);
+    };
+    
     this.getState = function() {
-      return state;
+      return status;
     };
     
     this.getStateValue = function() {
@@ -63,20 +54,54 @@
     };
     
     this.getQueue = function() {
-      return queue;
+      return callbacks;
     }
     
-    executor.call(this, this.resolve, this.reject);
+    executor.call(this, resolve, reject);
   }
-  Promise.prototype.catch = function(onRejected) {
 
+  /**
+   * Returns a promise object that is resolved with the given value.
+   * @param {mixed} value - A promise, or a thenable, or an object.
+   * @return {Promise}
+   *
+   */
+  Promise.resolve = function(value) {
+    return new Promise(function(resolve, reject){
+      resolve(value);
+    });
+  };
+
+  Promise.reject = function() {
+  };
+
+  Promise.all = function() {
+  };
+
+  Promise.race = function() {
+  };
+
+  Promise.prototype.catch = function(onRejected) {
     return this;
   };
   Promise.prototype.then = function(onFulfilled, onRejected) {
-    this.getQueue().push({
-      success: onFulfilled,
-      error: onRejected
-    });
+    var self = this;
+    function promiseInternal(state, func) {
+      if (typeof func !== "function") {
+        throw new TypeError("Callback argument must be a Function");
+      }
+      var currentState = self.getState(),
+          currentStateValue = self.getStateValue();
+      if (currentState === state) {
+        func.apply(func, currentStateValue);
+      } else {
+        self.getQueue()[state].push(func);
+      }
+      return self;
+    }
+    promiseInternal("ok", onFulfilled);
+    promiseInternal("fail", onRejected);
+
     return this;
   };
   
