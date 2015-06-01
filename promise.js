@@ -1,8 +1,17 @@
 (function(window){
   "use strict"; 
+  // Don't do anything if Promise is defined.
+  // Maybe it was supported natively in browser.
   if ("Promise" in window) {
     return ;
   }
+
+  /**
+   * Constructor
+   * @param {function} executor - Function object with two arguments resolve and reject.
+   * @return {Promise}
+   *
+   */
   function Promise(executor) {
     if (typeof executor !== "function") {
       throw Error("Promise resolver " + executor + " is not a function");
