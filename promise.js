@@ -14,7 +14,7 @@
    */
   function Promise(executor) {
     if (typeof executor !== "function") {
-      throw Error("Promise resolver " + executor + " is not a function");
+      throw new TypeError("Argument 1 of Promise.constructor is not a function");
     }
     
     var queue = [];
